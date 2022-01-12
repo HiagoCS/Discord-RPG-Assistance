@@ -1,0 +1,28 @@
+{
+	"status":{
+		"author":{
+			"name": ""
+		},
+		"color": [0, 0, 255],
+		"thumbnail":{
+			"url":""
+		},
+		"fields":[]
+	},
+	"attr":{
+		"title":"ATRIBUTOS",
+		"color":[0, 255, 0],
+		"thumbnail":{
+			"url": ""
+		},
+		"fields":[]
+	},
+	"skill":{
+		"title":"PERICIAS",
+		"color":[255, 0, 0],
+		"thumbnail":{
+			"url": ""
+		},
+		"fields":[]
+	}
+}

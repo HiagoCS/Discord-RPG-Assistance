@@ -12,6 +12,8 @@
     "discord.js": "^13.5.1",
     "dotenv": "^10.0.0",
     "fs": "^0.0.1-security",
-    "nodemon": "^2.0.15"
+    "mongoose": "^6.1.6",
+    "nodemon": "^2.0.15",
+    "reconlx": "^2.5.2"
   }
 }
