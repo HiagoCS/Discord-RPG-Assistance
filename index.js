@@ -8,9 +8,11 @@ const bot = new Client({
 		'GUILDS',
 		'GUILD_MESSAGE_REACTIONS',
 		'GUILD_MESSAGES',
-		'GUILD INVITES',
+		'GUILD_INVITES',
 		'GUILD_VOICE_STATES',
 		'GUILD_MEMBERS',
-		'GUILD PRESENCES'
+		'GUILD_PRESENCES'
 	]
-})
+});
+
+bot.login(process.env.BOT_TOKEN);
