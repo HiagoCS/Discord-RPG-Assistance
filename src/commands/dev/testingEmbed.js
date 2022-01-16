@@ -2,7 +2,6 @@ const {MessageActionRow, MessageButton} = require('discord.js');
 const {pagination} = require('reconlx');
 const fs = require('fs');
 const Command = require('../../structures/Command');
-const player = require('../../../JSON/fichas/player.json');
 const player_card = require('../../../JSON/embeds/player_card.json');
 
 module.exports = class extends Command{

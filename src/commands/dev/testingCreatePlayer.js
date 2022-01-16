@@ -1,5 +1,4 @@
 const Command = require('../../structures/Command');
-const player = require('../../../JSON/fichas/player.json');
 const {MessageActionRow, MessageButton} = require('discord.js');
 const fs = require('fs');
 const {pagination} = require('reconlx');

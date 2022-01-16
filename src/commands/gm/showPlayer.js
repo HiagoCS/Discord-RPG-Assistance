@@ -5,34 +5,48 @@ const {join} = require('path');
 const Command = require('../../structures/Command');
 const player_card = require('../../../JSON/embeds/player_card.json');
 const listsEmbeds = require('../../../JSON/embeds/list.json');
+let localplayer = {
+	"id":[],
+	"username":[]
+};
 
 module.exports = class extends Command{
 	constructor(client){
 		super(client, {
 			name:'sp',
-			description:'Exibe os personagens criados.',
-			options: [
-				{
-					name:'nickname',
-					type:'STRING',
-					description:'Nome do personagem.',
-					required: true
-				}
-			]
+			description:'Exibe os personagens criados.'
 		})
 	}
 
 	run = (interaction) =>{
-		let files = fs.readdirSync("../../../JSON/fichas");
-		console.log(files);
-		/*
-		const playerName = interaction.options.getString('nickname').toLowerCase();
-		const player = require(`../../../JSON/fichas/${playerName}.json`);
-		embedStatus(interaction, player);
-		embedAttr(interaction, player);
-		embedSkill(interaction, player);
-		embedFinal(interaction, player);
-		*/
+		let files = fs.readdirSync("./JSON/fichas"); const list = [];
+		for(let i in files){
+			const idBrute = require(`../../../JSON/fichas/${files[i]}`);
+			localplayer.id.push(idBrute.id);
+			const username = interaction.channel.guild.members.cache.find(r => r.id === localplayer.id[i]).user.username;
+			localplayer.username.push(username);
+			list[i] = files[i].split('.json');
+			const playerName = list[i][0].substr(0, 1).toUpperCase()+list[i][0].substr(1, list[i][0].length);
+			listsEmbeds.sp.fields[i] = {
+				name:`${parseInt(i)+1}: ${playerName}`,
+				value: username
+			}
+		}
+		interaction.channel.send({embeds: [listsEmbeds.sp], content:`Digite o nome do personagem:`})
+			.then(() =>{
+				const filter = b => b.author.id === interaction.user.id;
+				interaction.channel.awaitMessages({filter, max:1})
+					.then((collected) =>{
+						const collect = collected.first().content.toLowerCase();
+						const player = require(`../../../JSON/fichas/${collect}.json`);
+						embedStatus(interaction, player);
+						embedAttr(interaction, player);
+						embedSkill(interaction, player);
+						embedFinal(interaction, player);
+					}).catch((err) =>{
+						console.log(err);
+					})
+			});
 	}
 }
 
