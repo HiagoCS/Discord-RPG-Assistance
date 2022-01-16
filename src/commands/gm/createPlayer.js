@@ -1,6 +1,7 @@
-const Command = require('../../structures/Command');
 const {MessageActionRow, MessageButton} = require('discord.js');
-const pagination = require('reconlx');
+const {pagination} = require('reconlx');
+const fs = require('fs');
+const Command = require('../../structures/Command');
 const player_card = require('../../../JSON/embeds/player_card.json');
 
 const YesNo = new MessageActionRow()
@@ -23,9 +24,11 @@ const Save_Edit_Delete = new MessageActionRow()
 		new MessageButton()
 		.setCustomId('edit')
 		.setLabel('✏️')
-		.setStyle('WARNING'),
+		.setStyle('SECONDARY'),
 		new MessageButton()
-		.setCustomId('delete'))
+		.setCustomId('del')
+		.setLabel('❌')
+		.setStyle('DANGER'));
 const player = {
 			"id":"",
 			"name":"",
@@ -35,6 +38,7 @@ const player = {
 			"skills":[]
 };
 var addId = 0;
+const optionBase = ['status', 'attr', 'skills', 'final'];
 
 module.exports = class extends Command{
 	constructor(client){
@@ -47,15 +51,24 @@ module.exports = class extends Command{
 					type:'STRING',
 					description:'Nome do personagem que será criado',
 					required: true
-				}
+				},
+				{
+					name:'player',
+					type:'STRING',
+					description:'Mencione o usuário que usará esse personagem.',
+					required: true				}
 			]
 		})
 	}
 
 	run = (interaction) =>{
 		player.name = interaction.options.getString('nickname');
+		console.log("id cru = "+interaction.options.getString('player'));
+		var item = interaction.options.getString('player').split("<@!"); var id = item[1].split(">"); player.id = id[0];
+		player.image = interaction.channel.guild.members.cache.find(r => r.id === player.id).user.displayAvatarURL();
 		console.log(`Nome: ${player.name}`);
-		addMethod(interaction, "status");
+		console.log(`ID: ${player.id}`);
+		addMethod(interaction, optionBase[0]);
 	}
 }
 function addMethod(interaction, option){
@@ -67,8 +80,9 @@ function addMethod(interaction, option){
 			if(collected.first().content.toLowerCase() == 'cancel')
 				return interaction.channel.send({content:'Ficha cancelada'});
 			var collect = collected.first().content.split(" ");
-			if(option == 'status'){
+			if(option == optionBase[0]){
 				player.status[addId] = {
+					'id':addId,
 					'name':collect[0], 
 					'value':collect[1],
 					'maxValue':collect[1]
@@ -78,8 +92,9 @@ function addMethod(interaction, option){
 					console.log(player.status[i]);
 				}
 			}
-			else if(option == 'atributo'){
+			else if(option == optionBase[1]){
 				player.attr[addId] = {
+					'id':addId,
 					'name':collect[0], 
 					'value':collect[1],
 					'maxValue':collect[1]
@@ -89,8 +104,9 @@ function addMethod(interaction, option){
 					console.log(player.attr[i]);
 				}
 			}
-			else if(option == 'pericia'){
+			else if(option == optionBase[2]){
 				player.skills[addId] = {
+					'id':addId,
 					'name':collect[0], 
 					'value':collect[1],
 					'maxValue':collect[1]
@@ -110,32 +126,20 @@ function addMethod(interaction, option){
 						addMethod(interaction, option);
 						addId++;
 					}
-					else if(collected.customId == 'no' && option == 'status'){
+					else if(collected.customId == 'no' && option == optionBase[0]){
 						embedStatus(interaction);
-						interaction.channel.send({embeds:[embedStatus]})
-						addMethod(interaction, 'atributo');
-						addId = 0;
+						saveDelete(interaction, player_card.status, option);
 					}
-					else if(collected.customId == 'no' && option == 'atributo'){
-						addMethod(interaction, 'pericia');
-						addId = 0;
+					else if(collected.customId == 'no' && option == optionBase[1]){
+						embedAttr(interaction);
+						saveDelete(interaction, player_card.attr, option);
 					}
-					else if(collected.customId == 'no' && option == 'pericia'){
-						interaction.channel.send({content:`Mencione o jogador que usará esse personagem`})
-							.then(() =>{
-								const filter = b => b.author.id === interaction.user.id;
-								interaction.channel.awaitMessages({filter, max:1})
-								.then((collected) =>{
-									console.log("id cru = "+collected.first().content);
-									var item = collected.first().content.split("<@");
-									var id = item[1].split(">");
-									player.id = id[0];
-									player.image = interaction.channel.guild.members.cache.find(r => r.id === id[0]).user.displayAvatarURL();
-									embedFinal(interaction);
-								}).catch((err) =>{
-									console.log(err);
-								})
-							});
+					else if(collected.customId == 'no' && option == optionBase[2]){
+						embedSkill(interaction);
+						saveDelete(interaction, player_card.skill, option);
+					}
+					else if(collected.customId == 'no' && option == optionBase[3]){
+						embedFinal(interaction);
 					}
 					else
 						return;
@@ -145,10 +149,113 @@ function addMethod(interaction, option){
 		});
 	});
 }
+function saveDelete(interaction, embed, option){
+	interaction.channel.send({embeds:[embed], components:[Save_Edit_Delete]})
+	.then(() =>{
+		const filter = b => b.user.id === interaction.user.id;
+		interaction.channel.awaitMessageComponent({filter, max:1})
+		.then((collected) =>{
+			if(collected.customId == 'save'){
+				if(option == optionBase[0]){
+					addMethod(interaction, optionBase[1]);
+					addId = 0;
+				}
+				else if(option == optionBase[1]){
+					addMethod(interaction, optionBase[2]);
+					addId = 0;
+				}
+				else if(option == optionBase[2])
+					embedFinal(interaction);
+			}
+			else if(collected.customId == 'del'){
+				interaction.channel.send({content:`Reiniciando ${option} config`, ephemeral: true});
+				player.status = [];
+				player_card.status.fields = [];
+				addMethod(interaction, option);
+				addId = 0;
+			}
+			else if(collected.customId == 'edit'){
+				if(option == optionBase[0])
+					edit(interaction, option, player.status, player_card.status);
+				else if(option == optionBase[1])
+					edit(interaction, option, player.attr, player_card.attr);
+				else if(option == optionBase[2])
+					edit(interaction, option, player.skills, player_card.skills);
+			}
+		}).catch((err) =>{
+			console.log(err);
+		});
+	}).catch((err) =>{
+		console.log(err);
+	});
+}
+function edit(interaction, option, object, embed){
+	let editEmbed = {
+		fields: []
+	}
+	for(let i in object){
+		editEmbed.fields[i] = {
+			name: `__**${parseInt(i)+1}: ${object[i].name}**__`,
+			value: object[i].value+'/'+object[i].maxValue
+		}
+	}
+	interaction.channel.send({embeds: [editEmbed], content:`Digite o número do item a editar:`})
+		.then(() =>{
+			const filter = b => b.author.id === interaction.user.id;
+			interaction.channel.awaitMessages({filter, max:1})
+				.then((collectId) =>{
+					const id = parseInt(collectId.first().content) - 1;
+					addId = id;
+					editEmbed = {
+						fields: [
+							{
+								name: `__**Nome: ${object[id].name}**__`,
+								value: `Valor: ${object[id].value}/${object[id].maxValue}`
+							}
+						]
+					}
+					interaction.channel.send({embeds: [editEmbed], content:`Digite "NovoNome NovoValor"`})
+						.then(() =>{
+							const filter = b => b.author.id === interaction.user.id;
+							interaction.channel.awaitMessages({filter, max:1})
+								.then((collectChange) =>{
+									const change = collectChange.first().content.split(" ");
+									console.log("========\nANTIGO STATUS");
+									for(let i in object){
+										console.log(object[i]);
+									}
+									object.splice(addId, 1);
+									object.push({
+										"id":addId,
+										"name":change[0],
+										"value":change[1],
+										"maxValue":change[1]
+									});
+									console.log(`${change[0]} adicionado`);
+									console.log("========\nNOVO STATUS");
+									for(let i in object){
+										console.log(object[i]);
+									}
+									if(option == optionBase[0])
+										embedStatus(interaction);
+									else if(option == optionBase[1])
+										embedAttr(interaction);
+									else if(option == optionBase[2])
+										embedSkill(interaction);
+									saveDelete(interaction, embed, option);
+								}).catch((err) =>{
+									console.log(err);
+								});
+						});
+				}).catch((err) =>{
+					console.log(err);
+				});	
+		});
+}
 function embedStatus(interaction){
 	//EMBED STATUS
-	player_card.status.author.name = player.name;
-	player_card.status.thumbnail.url = player.image;
+	player_card.status.author.name = `『📝 ${player.name} 📝』`;
+	player_card.status.image.url =  player.image;
 	for(let i in player.status){
 		var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
 		var numMix = Math.floor(Math.random() * colorMix.length);
@@ -195,5 +302,11 @@ function embedFinal(interaction){
 		channel: interaction.channel,
 		author: interaction.user
 	});
-
+	var json = JSON.stringify(player);
+	fs.writeFile(`JSON/fichas/${player.name.toLowerCase()}.json`, json, {encoding: "utf8"}, (err) =>{
+		if (err)console.log(err);
+		else{
+			interaction.channel.send({content:`${player.name} criado com sucesso!!`});
+		}
+	});
 }

@@ -22,25 +22,20 @@ module.exports = class extends Command{
 		super(client, {
 			name: 'testcp',
 			description: 'Testa o inicio da criação de um personagem.',
-			options: [
-				{
-					name:'nickname',
-					type:'STRING',
-					description:'Nome do personagem que será criado',
-					required: true
-				}
-			]
 		})
 	}
 
 	run = (interaction) =>{
-		player.name = interaction.options.getString('nickname');
-		console.log(`Nome: ${player.name}`);
-		//addMethod(interaction, "status");
-		embedStatus(interaction);
-		embedAttr(interaction);
-		embedSkill(interaction);
-		embedFinal(interaction);
+		var json = JSON.stringify(player);
+		fs.writeFile(`JSON/fichas/${player.name}.json`, json, {encoding: "utf8"}, 
+			(err) =>{
+				if (err)console.log(err);
+				else{
+					interaction.channel.send({content:"Personagem salvo em "+player.name+".json"});
+				}
+			}
+		);
+		
 	}
 }
 function addMethod(interaction, option){

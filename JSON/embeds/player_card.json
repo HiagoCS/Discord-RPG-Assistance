@@ -4,13 +4,13 @@
 			"name": ""
 		},
 		"color": [0, 0, 255],
-		"thumbnail":{
+		"image":{
 			"url":""
 		},
 		"fields":[]
 	},
 	"attr":{
-		"title":"ATRIBUTOS",
+		"title":"『  Atributos  』",
 		"color":[0, 255, 0],
 		"thumbnail":{
 			"url": ""
@@ -18,7 +18,7 @@
 		"fields":[]
 	},
 	"skill":{
-		"title":"PERICIAS",
+		"title":"『  Pericias  』",
 		"color":[255, 0, 0],
 		"thumbnail":{
 			"url": ""
