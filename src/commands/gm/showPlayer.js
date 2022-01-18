@@ -1,10 +1,16 @@
+//APIS
 const {MessageActionRow, MessageButton} = require('discord.js');
 const {pagination} = require('reconlx');
 const fs = require('fs');
-const {join} = require('path');
+
+//Discord event
 const Command = require('../../structures/Command');
+
+//Embeds
 const player_card = require('../../../JSON/embeds/player_card.json');
 const listsEmbeds = require('../../../JSON/embeds/list.json');
+
+
 let localplayer = {
 	"id":[],
 	"username":[]
