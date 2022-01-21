@@ -9,7 +9,15 @@ module.exports = class extends Event{
 	run = (interaction) =>{
 		if(interaction.isCommand()){
 			const cmd = this.client.commands.find(c => c.name === interaction.commandName);
-			if(cmd) cmd.run(interaction);
+			if(cmd){
+				cmd.run(interaction)
+				interaction.deferReply({
+					ephemeral: true
+				}).then((interaction) =>{
+					interaction = new Promise(resolve => setTimeout(resolve, 500))
+				})
+
+			} 
 		}
 	}
 }

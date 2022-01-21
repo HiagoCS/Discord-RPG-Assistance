@@ -66,7 +66,19 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		player.name = interaction.options.getString('nickname');
+		const role = {
+			'id': '852373845351989289',
+			'name': ''
+		}
+		role.name = interaction.guild.roles.cache.find(r => r.id === role.id).name;
+		if(!interaction.member._roles.includes(role.id)){
+			messageEmbeds.msg.title = `🚫 PERMISSÃO NEGADA 🚫`;
+			messageEmbeds.msg.description = `Você não tem permissão para usar este comando`
+			messageEmbeds.msg.color = [255, 0, 0];
+			interaction.channel.send({embeds: [messageEmbeds.msg]});
+			return;
+		}
+		player.name = interaction.options.getString('nickname').toLowerCase();
 		console.log("id cru = "+interaction.options.getString('player'));
 		var item = interaction.options.getString('player').split("<@!"); var id = item[1].split(">"); player.id = id[0];
 		player.image = interaction.channel.guild.members.cache.find(r => r.id === player.id).user.displayAvatarURL();
@@ -92,17 +104,18 @@ function addMethod(interaction, option){
 		messageEmbeds.msg.color = format[2].color;
 	}
 	interaction.channel.send({embeds:[messageEmbeds.msg], ephemeral: true})
-	.then(() =>{
+	.then((msg) =>{
 		const filter = b => b.author.id === interaction.user.id;
 		interaction.channel.awaitMessages({filter, max:1})
 		.then((collected) =>{
+			msg.delete();
 			if(collected.first().content.toLowerCase() == 'cancel')
 				return interaction.channel.send({content:'Ficha cancelada'});
 			var collect = collected.first().content.split(" ");
 			if(option == optionBase[0]){
 				player.status[addId] = {
 					'id':addId,
-					'name':collect[0], 
+					'name':collect[0].toLowerCase(), 
 					'value':collect[1],
 					'maxValue':collect[1]
 				}
@@ -114,7 +127,7 @@ function addMethod(interaction, option){
 			else if(option == optionBase[1]){
 				player.attr[addId] = {
 					'id':addId,
-					'name':collect[0], 
+					'name':collect[0].toLowerCase(), 
 					'value':collect[1],
 					'maxValue':collect[1]
 				}
@@ -126,7 +139,7 @@ function addMethod(interaction, option){
 			else if(option == optionBase[2]){
 				player.skills[addId] = {
 					'id':addId,
-					'name':collect[0], 
+					'name':collect[0].toLowerCase(), 
 					'value':collect[1],
 					'maxValue':collect[1]
 				}
@@ -137,10 +150,11 @@ function addMethod(interaction, option){
 			}
 
 			interaction.channel.send({content:`Adicionar mais ${messageEmbeds.msg.title.toLowerCase()}?`, ephemeral:true, components:[YesNo]})
-			.then(() =>{
+			.then((msg) =>{
 				const filter = b => b.user.id === interaction.user.id;
 				interaction.channel.awaitMessageComponent({filter, max:1})
 				.then((collected) =>{
+					msg.delete({timeout: 3000});
 					if(collected.customId == 'yes'){
 						addMethod(interaction, option);
 						addId++;
@@ -171,10 +185,11 @@ function addMethod(interaction, option){
 }
 function saveDelete(interaction, embed, option){
 	interaction.channel.send({embeds:[embed], components:[Save_Edit_Delete]})
-	.then(() =>{
+	.then((msg) =>{
 		const filter = b => b.user.id === interaction.user.id;
 		interaction.channel.awaitMessageComponent({filter, max:1})
 		.then((collected) =>{
+			msg.delete({timeout: 3000});
 			if(collected.customId == 'save'){
 				if(option == optionBase[0]){
 					addMethod(interaction, optionBase[1]);
@@ -224,10 +239,11 @@ function edit(interaction, option, object, embed){
 		}
 	}
 	interaction.channel.send({embeds: [editEmbed], content:`Digite o número do item a editar:`})
-		.then(() =>{
+		.then((msg) =>{
 			const filter = b => b.author.id === interaction.user.id;
 			interaction.channel.awaitMessages({filter, max:1})
 				.then((collectId) =>{
+					msg.delete()
 					const id = parseInt(collectId.first().content) - 1;
 					addId = id;
 					editEmbed = {
@@ -241,10 +257,11 @@ function edit(interaction, option, object, embed){
 						color: messageEmbeds.msg.color
 					}
 					interaction.channel.send({embeds: [editEmbed], content:`Digite "NovoNome NovoValor"`})
-						.then(() =>{
+						.then((msg) =>{
 							const filter = b => b.author.id === interaction.user.id;
 							interaction.channel.awaitMessages({filter, max:1})
 								.then((collectChange) =>{
+									msg.delete();
 									const change = collectChange.first().content.split(" ");
 									console.log("========\nANTIGO "+messageEmbeds.msg.title.toUpperCase());
 									for(let i in object){
@@ -253,9 +270,9 @@ function edit(interaction, option, object, embed){
 									object.splice(addId, 1);
 									object.push({
 										"id":addId,
-										"name":change[0],
-										"value":change[1],
-										"maxValue":change[1]
+										"name":change[0].toLowerCase(),
+										"value":collect[1],
+										"maxValue":collect[1]
 									});
 									console.log(`${change[0]} adicionado`);
 									console.log("========\nNOVO "+messageEmbeds.msg.title.toUpperCase());

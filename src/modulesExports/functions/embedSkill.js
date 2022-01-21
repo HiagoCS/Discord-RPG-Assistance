@@ -7,7 +7,7 @@ module.exports = (interaction, player) =>{
 		var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
 		var numMix = Math.floor(Math.random() * colorMix.length);
 		player_card.skill.fields[i] = {
-			name: `__**${player.skills[i].name}**__`,
+			name: `__**${player.skills[i].name.substr(0, 1).toUpperCase()+player.skills[i].name.substr(1, player.skills[i].name.length)}**__`,
 			value: colorMix[numMix]+player.skills[i].value+'/'+player.skills[i].maxValue+'\n```',
 			inline: true
 		}

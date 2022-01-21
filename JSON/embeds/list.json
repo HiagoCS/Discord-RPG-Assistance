@@ -3,5 +3,10 @@
 		"title":"Lista de Jogadores",
 		"color":[255, 0, 255],
 		"fields":[]
+	},
+	"ss":{
+		"title":"Lista de Status",
+		"color":[0, 0, 255],
+		"fields":[]
 	}
 }

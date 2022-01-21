@@ -6,8 +6,12 @@ module.exports = (interaction, player_card, player) =>{
 		embeds: pages,
 		message: interaction,
 		fastSkip: true,
-		pageTravel: true,
 		channel: interaction.channel,
-		author: interaction.user
+		author: interaction.user,
+		time: 15000
+	}).then(() =>{
+		setTimeout(() => interaction.channel.messages.cache.first().delete(), 20000);
+	}).catch((err) =>{
+		console.log(err);
 	});
 }
