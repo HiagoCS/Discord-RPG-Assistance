@@ -1,16 +1,25 @@
-const player_card = require('../../../JSON/embeds/player_card.json');
-
 module.exports = (interaction, player) =>{
-	//EMBED PERICIAS
-	player_card.skill.thumbnail.url = player.image;
-	for(let i in player.skills){
-		var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
-		var numMix = Math.floor(Math.random() * colorMix.length);
-		player_card.skill.fields[i] = {
-			name: `__**${player.skills[i].name.substr(0, 1).toUpperCase()+player.skills[i].name.substr(1, player.skills[i].name.length)}**__`,
-			value: colorMix[numMix]+player.skills[i].value+'/'+player.skills[i].maxValue+'\n```',
-			inline: true
+		const all_embeds = []
+		let i  = 0;
+		for(let key in player.skills){
+			if(!all_embeds[Math.floor(i/25)]){
+				all_embeds.push({
+					"title":"『  Pericias  』",
+					"color":[255, 0, 0],
+					"thumbnail":{
+						"url": player.image
+					},
+					"fields": []
+				});
+			}
+			var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
+			var numMix = Math.floor(Math.random() * colorMix.length);
+			all_embeds[Math.floor(i/25)].fields[i] = {
+				name: `__**${player.skills[i].name.substr(0, 1).toUpperCase()+player.skills[i].name.substr(1, player.skills[i].name.length)}**__`,
+				value: colorMix[numMix]+player.skills[i].maxValue+'\n```',
+				inline: true
+			}
+			i++
 		}
-	}
-	return player_card.skill;
+		return all_embeds;
 }

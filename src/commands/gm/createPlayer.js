@@ -5,6 +5,7 @@ const fs = require('fs');
 //=====================================================================
 //Discord events
 const Command = require('../../structures/Command');
+const client = require("../../structures/Client");
 //=====================================================
 
 //Functions
@@ -22,13 +23,13 @@ const Save_Edit_Delete = require('../../modulesExports/buttons/save_edit_delete.
 //======================================================================================
 
 //Embeds
-const player_card = require('../../../JSON/embeds/player_card.json');
 var messageEmbeds = require('../../../JSON/embeds/messages.json');
 //===========================================================================
 
 const player = {
 			"id":"",
 			"name":"",
+			"privateChannel":"",
 			"image":"",
 			"status":[],
 			"attr":[],
@@ -41,8 +42,8 @@ const format = [
 		{'name': 'Atributos', 'color': [0, 255, 0]},
 		{'name': 'Pericias', 'color': [255, 0, 0]}
 ]
-	
-
+const botconfig = require('../../../JSON/botconfig.json');
+const embedsArray = [];
 
 module.exports = class extends Command{
 	constructor(client){
@@ -60,30 +61,34 @@ module.exports = class extends Command{
 					name:'player',
 					type:'STRING',
 					description:'Mencione o usuário que usará esse personagem.',
-					required: true				}
+					required: true
+				},
+				{
+					name:'private-channel',
+					type:'CHANNEL',
+					description:'Mencione o canal privado do personagem.',
+					required: true
+				}
 			]
 		})
 	}
 
-	run = (interaction) =>{
-		const role = {
-			'id': '852373845351989289',
-			'name': ''
-		}
-		role.name = interaction.guild.roles.cache.find(r => r.id === role.id).name;
-		if(!interaction.member._roles.includes(role.id)){
-			messageEmbeds.msg.title = `🚫 PERMISSÃO NEGADA 🚫`;
-			messageEmbeds.msg.description = `Você não tem permissão para usar este comando`
-			messageEmbeds.msg.color = [255, 0, 0];
-			interaction.channel.send({embeds: [messageEmbeds.msg]});
+	run = (interaction, client) =>{
+		 
+		const role = interaction.guild.roles.cache.find(r => r.name === 'Cesár').id;
+		if(!interaction.member._roles.includes(role)){
+			interaction.channel.send({embeds: [messageEmbeds.noRole]});
 			return;
 		}
 		player.name = interaction.options.getString('nickname').toLowerCase();
 		console.log("id cru = "+interaction.options.getString('player'));
 		var item = interaction.options.getString('player').split("<@!"); var id = item[1].split(">"); player.id = id[0];
 		player.image = interaction.channel.guild.members.cache.find(r => r.id === player.id).user.displayAvatarURL();
+		player.privateChannel = interaction.options.getChannel('private-channel');
 		console.log(`Nome: ${player.name}`);
 		console.log(`ID: ${player.id}`);
+		console.log(`Private Channel: ${player.privateChannel.id}`);
+
 		addMethod(interaction, optionBase[0]);
 	}
 }
@@ -103,21 +108,46 @@ function addMethod(interaction, option){
 		messageEmbeds.msg.description = `Defina uma ${format[2].name.toLowerCase().substr(0, format[2].length-1)} para o personagem e o valor maximo`;
 		messageEmbeds.msg.color = format[2].color;
 	}
-	interaction.channel.send({embeds:[messageEmbeds.msg], ephemeral: true})
+	player.privateChannel.send({embeds:[messageEmbeds.msg], ephemeral: true})
 	.then((msg) =>{
 		const filter = b => b.author.id === interaction.user.id;
-		interaction.channel.awaitMessages({filter, max:1})
+		player.privateChannel.awaitMessages({filter, max:1})
 		.then((collected) =>{
 			msg.delete();
-			if(collected.first().content.toLowerCase() == 'cancel')
-				return interaction.channel.send({content:'Ficha cancelada'});
-			var collect = collected.first().content.split(" ");
+			if(collected.first().content.toLowerCase() == 'cancel'){
+				return player.privateChannel.send({content:'Ficha cancelada'})
+					.then(() =>{
+						setTimeout(() => pChannel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+					});
+			}
+			if(collected.first().content.toLowerCase() == 'next'){
+				if (option == optionBase[0]) {
+					const player_card = embedStatus(interaction, player);
+					saveDelete(interaction, player_card, option);
+				}
+				else if(option == optionBase[1]){
+					const player_card = embedAttr(interaction, player);
+					saveDelete(interaction, player_card, option);
+				}
+				else if(option == optionBase[2]){
+					const player_card = embedSkill(interaction, player);
+					saveDelete(interaction, player_card, option);
+				}
+			}
+			var collect = collected.first().content.split(/(\d)/);
+			interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id).messages.cache.find(b => b.author.id === interaction.user.id).delete();
+			var globalVal = "";
+			for(let i in collect){
+				if(!isNaN(collect[i])){
+					globalVal += collect[i];
+				}
+			}
 			if(option == optionBase[0]){
 				player.status[addId] = {
 					'id':addId,
 					'name':collect[0].toLowerCase(), 
-					'value':collect[1],
-					'maxValue':collect[1]
+					'value':globalVal,
+					'maxValue':globalVal
 				}
 				console.log("========\nSTATUS");
 				for(let i in player.status){
@@ -128,8 +158,8 @@ function addMethod(interaction, option){
 				player.attr[addId] = {
 					'id':addId,
 					'name':collect[0].toLowerCase(), 
-					'value':collect[1],
-					'maxValue':collect[1]
+					'value':globalVal,
+					'maxValue':globalVal
 				}
 				console.log("===========\nATRIBUTOS");
 				for(let i in player.attr){
@@ -140,8 +170,8 @@ function addMethod(interaction, option){
 				player.skills[addId] = {
 					'id':addId,
 					'name':collect[0].toLowerCase(), 
-					'value':collect[1],
-					'maxValue':collect[1]
+					'value':globalVal,
+					'maxValue':globalVal
 				}
 				console.log("===========\nPERICIAS");
 				for(let i in player.skills){
@@ -149,30 +179,30 @@ function addMethod(interaction, option){
 				}
 			}
 
-			interaction.channel.send({content:`Adicionar mais ${messageEmbeds.msg.title.toLowerCase()}?`, ephemeral:true, components:[YesNo]})
+			player.privateChannel.send({content:`Adicionar mais ${messageEmbeds.msg.title.toLowerCase()}?`, ephemeral:true, components:[YesNo]})
 			.then((msg) =>{
 				const filter = b => b.user.id === interaction.user.id;
-				interaction.channel.awaitMessageComponent({filter, max:1})
+				player.privateChannel.awaitMessageComponent({filter, max:1})
 				.then((collected) =>{
-					msg.delete({timeout: 3000});
+					msg.delete();
 					if(collected.customId == 'yes'){
 						addMethod(interaction, option);
 						addId++;
 					}
 					else if(collected.customId == 'no' && option == optionBase[0]){
-						player_card.status = embedStatus(interaction, player);
-						saveDelete(interaction, player_card.status, option);
+						const player_card = embedStatus(interaction, player);
+						saveDelete(interaction, player_card, option);
 					}
 					else if(collected.customId == 'no' && option == optionBase[1]){
-						player_card.attr = embedAttr(interaction, player);
-						saveDelete(interaction, player_card.attr, option);
+						const player_card = embedAttr(interaction, player);
+						saveDelete(interaction, player_card, option);
 					}
 					else if(collected.customId == 'no' && option == optionBase[2]){
-						player_card.skill = embedSkill(interaction, player);
-						saveDelete(interaction, player_card.skill, option);
+						const player_card = embedSkill(interaction, player);
+						saveDelete(interaction, player_card, option);
 					}
 					else if(collected.customId == 'no' && option == optionBase[3]){
-						showPagination(interaction, player_card, player);
+						showPagination(interaction, embedStatus(interaction, player), embedAttr(interaction, player), embedSkill(interaction, player), player);
 						registerPlayer(interaction, player);
 					}
 					else
@@ -184,12 +214,13 @@ function addMethod(interaction, option){
 	});
 }
 function saveDelete(interaction, embed, option){
-	interaction.channel.send({embeds:[embed], components:[Save_Edit_Delete]})
+	const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
+	pChannel.send({embeds:embed, components:[Save_Edit_Delete]})
 	.then((msg) =>{
 		const filter = b => b.user.id === interaction.user.id;
-		interaction.channel.awaitMessageComponent({filter, max:1})
+		pChannel.awaitMessageComponent({filter, max:1})
 		.then((collected) =>{
-			msg.delete({timeout: 3000});
+			msg.delete();
 			if(collected.customId == 'save'){
 				if(option == optionBase[0]){
 					addMethod(interaction, optionBase[1]);
@@ -200,24 +231,34 @@ function saveDelete(interaction, embed, option){
 					addId = 0;
 				}
 				else if(option == optionBase[2]){
-					showPagination(interaction, player_card, player);
+					showPagination(interaction, embedStatus(interaction, player), embedAttr(interaction, player), embedSkill(interaction, player), player);
 					registerPlayer(interaction, player);
 				}
 			}
 			else if(collected.customId == 'del'){
-				interaction.channel.send({content:`Reiniciando ${option} config`, ephemeral: true});
-				player.status = [];
-				player_card.status.fields = [];
-				addMethod(interaction, option);
+				pChannel.send({content:`Reiniciando edição de ${messageEmbeds.msg.title}`, ephemeral: true})
+					.then(() =>{
+							setTimeout(() => pChannel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+					});
+					if(option == optionBase[0]){
+						player.status = [];
+					}
+					else if(option == optionBase[1]){
+						player.attr = [];
+					}
+					else{
+						player.skills = [];
+					}
 				addId = 0;
+				addMethod(interaction, option);
 			}
 			else if(collected.customId == 'edit'){
 				if(option == optionBase[0])
-					edit(interaction, option, player.status, player_card.status);
+					edit(interaction, option, player.status, embed);
 				else if(option == optionBase[1])
-					edit(interaction, option, player.attr, player_card.attr);
+					edit(interaction, option, player.attr, embed);
 				else if(option == optionBase[2])
-					edit(interaction, option, player.skills, player_card.skill);
+					edit(interaction, option, player.skills, embed);
 			}
 		}).catch((err) =>{
 			console.log(err);
@@ -234,35 +275,43 @@ function edit(interaction, option, object, embed){
 	}
 	for(let i in object){
 		editEmbed.fields[i] = {
-			name: `__**${parseInt(i)+1}: ${object[i].name}**__`,
-			value: object[i].value+'/'+object[i].maxValue
+			name: `__**${parseInt(i)+1}: ${object[i].name.substr(0, 1).toUpperCase()+object[i].name.substr(1, object[i].name.length)}**__`,
+			value: object[i].maxValue
 		}
 	}
-	interaction.channel.send({embeds: [editEmbed], content:`Digite o número do item a editar:`})
+	player.privateChannel.send({embeds: [editEmbed], content:`Digite o número do item a editar:`})
 		.then((msg) =>{
 			const filter = b => b.author.id === interaction.user.id;
-			interaction.channel.awaitMessages({filter, max:1})
+			player.privateChannel.awaitMessages({filter, max:1})
 				.then((collectId) =>{
-					msg.delete()
+					msg.delete();
 					const id = parseInt(collectId.first().content) - 1;
+					interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id).messages.cache.find(b => b.author.id === interaction.user.id).delete();
 					addId = id;
 					editEmbed = {
 						title: messageEmbeds.msg.title,
 						fields: [
 							{
-								name: `__**Nome: ${object[id].name}**__`,
-								value: `Valor: ${object[id].value}/${object[id].maxValue}`
+								name: `__**Nome: ${object[id].name.substr(0, 1).toUpperCase()+object[id].name.substr(1, object[id].name.length)}**__`,
+								value: `Valor: ${object[id].maxValue}`
 							}
 						],
 						color: messageEmbeds.msg.color
 					}
-					interaction.channel.send({embeds: [editEmbed], content:`Digite "NovoNome NovoValor"`})
+					player.privateChannel.send({embeds: [editEmbed], content:`Digite "NovoNome NovoValor"`})
 						.then((msg) =>{
 							const filter = b => b.author.id === interaction.user.id;
-							interaction.channel.awaitMessages({filter, max:1})
+							player.privateChannel.awaitMessages({filter, max:1})
 								.then((collectChange) =>{
 									msg.delete();
-									const change = collectChange.first().content.split(" ");
+									const change = collectChange.first().content.split(/(\d)/);
+									interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id).messages.cache.find(b => b.author.id === interaction.user.id).delete();
+									var globalVal = "";
+									for(let i in change){
+										if(!isNaN(change[i])){
+											globalVal += change[i];
+										}
+									}
 									console.log("========\nANTIGO "+messageEmbeds.msg.title.toUpperCase());
 									for(let i in object){
 										console.log(object[i]);
@@ -271,8 +320,8 @@ function edit(interaction, option, object, embed){
 									object.push({
 										"id":addId,
 										"name":change[0].toLowerCase(),
-										"value":collect[1],
-										"maxValue":collect[1]
+										"value":globalVal,
+										"maxValue":globalVal
 									});
 									console.log(`${change[0]} adicionado`);
 									console.log("========\nNOVO "+messageEmbeds.msg.title.toUpperCase());
@@ -280,11 +329,11 @@ function edit(interaction, option, object, embed){
 										console.log(object[i]);
 									}
 									if(option == optionBase[0])
-										player_card.status = embedStatus(interaction, player);
+										embed = embedStatus(interaction, player);
 									else if(option == optionBase[1])
-										player_card.attr = embedAttr(interaction, player);
+										embed = embedAttr(interaction, player);
 									else if(option == optionBase[2])
-										player_card.skill = embedSkill(interaction, player);
+										embed = embedSkill(interaction, player);
 									saveDelete(interaction, embed, option);
 								}).catch((err) =>{
 									console.log(err);

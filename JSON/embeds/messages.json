@@ -3,5 +3,35 @@
 		"title":"",
 		"description":"",
 		"color":""
+	},
+	"alert":{
+		"title":"⚠️ ALERTA ⚠️",
+		"description":"",
+		"color":[255, 255, 0]
+	},
+	"error":{
+		"title":"🚫 ERRO 🚫",
+		"description":"",
+		"color":[255, 0, 0]
+	},
+	"success":{
+		"title":"",
+		"description":"",
+		"color":""
+	},
+	"noRole":{
+		"title":"🚫 PERMISSÃO NEGADA 🚫",
+		"description":"Você não tem permissão para usar este comando",
+		"color":[255, 0, 0]
+	},
+	"showStatus":{
+		"author":{
+			"name":""
+		},
+		"color":[0, 0, 255],
+		"image":{
+			"url":""
+		},
+		"fields":[]
 	}
 }

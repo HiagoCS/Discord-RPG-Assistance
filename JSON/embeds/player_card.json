@@ -1,28 +1,5 @@
 {
-	"status":{
-		"author":{
-			"name": ""
-		},
-		"color": [0, 0, 255],
-		"image":{
-			"url":""
-		},
-		"fields":[]
-	},
-	"attr":{
-		"title":"『  Atributos  』",
-		"color":[0, 255, 0],
-		"thumbnail":{
-			"url": ""
-		},
-		"fields":[]
-	},
-	"skill":{
-		"title":"『  Pericias  』",
-		"color":[255, 0, 0],
-		"thumbnail":{
-			"url": ""
-		},
-		"fields":[]
-	}
+	"status":[],
+	"attr":[],
+	"skill":[]
 }

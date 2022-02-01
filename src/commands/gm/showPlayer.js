@@ -9,18 +9,13 @@ const Command = require('../../structures/Command');
 //Embeds
 const player_card = require('../../../JSON/embeds/player_card.json');
 const listsEmbeds = require('../../../JSON/embeds/list.json');
+const messageEmbeds = require('../../../JSON/embeds/messages.json');
 
 //Functions
 const showPagination = require('../../modulesExports/functions/pagination.js');
 const embedStatus = require('../../modulesExports/functions/embedStatus.js');
 const embedAttr = require('../../modulesExports/functions/embedAttr.js');
 const embedSkill = require('../../modulesExports/functions/embedSkill.js');
-
-let localplayer = {
-	"id":[],
-	"username":[]
-};
-
 module.exports = class extends Command{
 	constructor(client){
 		super(client, {
@@ -37,36 +32,28 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		const role = {
-			'id': '852373845351989289',
-			'name': ''
-		}
-		role.name = interaction.guild.roles.cache.find(r => r.id === role.id).name;
-		if(interaction.member._roles.includes(role.id)){
+		const role = interaction.guild.roles.cache.find(r => r.name === 'Cesár').id;
+		if(interaction.member._roles.includes(role)){
 			if(interaction.options.getString('nickname')){
 				try{
 					const player = require(`../../../JSON/fichas/${interaction.options.getString('nickname').toLowerCase()}.json`)
-					player_card.status = embedStatus(interaction, player);
-					player_card.attr = embedAttr(interaction, player);
-					player_card.skill = embedSkill(interaction, player);
-					showPagination(interaction, player_card, player);
+					showPagination(interaction, embedStatus(interaction, player), embedAttr(interaction, player), embedSkill(interaction, player), player);
 				}
-				catch (err){
-					return interaction.channel.send({content: 'Não existe este personagem!'});
+				catch{
+					messageEmbeds.error.description = `Este personagem não existe, use novamente o comando com um personagem existente`;
+					return interaction.channel.send({embeds: [messageEmbeds.error]})
+						.then(() =>{
+							setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 8000);
+						});
 				}	
 			}
 			else{
-				let files = fs.readdirSync("./JSON/fichas"); const list = [];
-				for(let i in files){
-					const idBrute = require(`../../../JSON/fichas/${files[i]}`);
-					localplayer.id.push(idBrute.id);
-					const username = interaction.channel.guild.members.cache.find(r => r.id === localplayer.id[i]).user.username;
-					localplayer.username.push(username);
-					list[i] = files[i].split('.json');
-					const playerName = list[i][0].substr(0, 1).toUpperCase()+list[i][0].substr(1, list[i][0].length);
+				let filesList = fs.readdirSync("./JSON/fichas");filesList.shift();
+				for(let i in filesList){
+					const file = require(`../../../JSON/fichas/${filesList[i]}`);
 					listsEmbeds.sp.fields[i] = {
-						name:`${playerName}`,
-						value: username
+						name: file.name.substr(0, 1).toUpperCase()+file.name.substr(1, file.name.length),
+						value: interaction.channel.guild.members.cache.find(r => r.id === file.id).user.username
 					}
 				}
 				interaction.channel.send({embeds: [listsEmbeds.sp], content:`Digite o nome do personagem:`, ephemeral: true})
@@ -74,15 +61,25 @@ module.exports = class extends Command{
 						const filter = b => b.author.id === interaction.user.id;
 						interaction.channel.awaitMessages({filter, max:1})
 							.then((collected) =>{
-								msg.delete({timeout: 3000});
+								msg.delete();
 								const collect = collected.first().content.toLowerCase();
+								if(collect == 'cancel'){
+									return interaction.channel.send({content:'Exibição cancelada'})
+										.then(() =>{
+											setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+											interaction.channel.messages.cache.find(b => b.author.id === interaction.user.id).delete();
+										});
+								}
 								const player = require(`../../../JSON/fichas/${collect}.json`);
-								player_card.status = embedStatus(interaction, player);
-								player_card.attr =embedAttr(interaction, player);
-								player_card.skill =embedSkill(interaction, player);
-								showPagination(interaction, player_card, player);
+								interaction.channel.messages.cache.find(b => b.author.id === interaction.user.id).delete();
+								showPagination(interaction, embedStatus(interaction, player), embedAttr(interaction, player), embedSkill(interaction, player), player);
 							}).catch((err) =>{
-								return interaction.channel.send({content:"Este personagem não existe, use novamente o comando com um personagem existente"});
+								messageEmbeds.error.description = `Este personagem não existe, use novamente o comando com um personagem existente`
+								interaction.channel.messages.cache.find(b => b.author.id === interaction.user.id).delete();
+								return interaction.channel.send({embeds: [messageEmbeds.error]})
+									.then(() =>{
+										setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 8000);
+									});
 							});
 					}).catch((err) =>{
 						console.log(err)
@@ -90,29 +87,26 @@ module.exports = class extends Command{
 			}
 		}
 		else{
-			let files = fs.readdirSync("./JSON/fichas");
-			const playersArray = [];
-			var player;
+			let files = fs.readdirSync("./JSON/fichas"); files.shift();
+			var player = null;
 			for(let i in files){
-				const filesList = require(`../../../JSON/fichas/${files[i]}`);
+				let filesList = require(`../../../JSON/fichas/${files[i]}`);
 				if(filesList.id == interaction.user.id){
-					if(interaction.options.getString('nickname') != null){
-						if(interaction.options.getString('personagem').toLowerCase() != filesList.name.toLowerCase()){
-							messageEmbeds.msg.title = `🚫 PERMISSÃO NEGADA 🚫`;
-							messageEmbeds.msg.description = `Você não tem permissão para mexer com o personagem ${interaction.options.getString('nickname').substr(0, 1).toUpperCase()+interaction.options.getString('nickname').substr(1, interaction.options.getString('nickname').length)}`
-							messageEmbeds.msg.color = [255, 0, 0];
-							interaction.channel.send({embeds: [messageEmbeds.msg], ephemeral: true});
-						}
-					}
-					else{
-						player_card.status = embedStatus(interaction, filesList);
-						player_card.attr = embedAttr(interaction, filesList);
-						player_card.skill = embedSkill(interaction, filesList);
-						showPagination(interaction, player_card, filesList);
-					}
+					player = filesList;
 				}
 			}
-			
+
+			if(player){
+				showPagination(interaction, embedStatus(interaction, player), embedAttr(interaction, player), embedSkill(interaction, player), player);
+			}
+			else{
+				messageEmbeds.alert.description = `Sem personagem para exibir`;
+				interaction.channel.send({embeds: [messageEmbeds.alert]})
+					.then(() =>{
+						setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+					});
+			}
 		}
 	}
 }
+//
