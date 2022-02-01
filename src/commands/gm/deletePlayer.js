@@ -13,6 +13,7 @@ let localplayer = {
 	"id":[],
 	"username":[]
 };
+const botconfig = require('../../../JSON/botconfig.json');
 
 module.exports = class extends Command{
 	constructor(client){
@@ -30,7 +31,7 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		const role = interaction.guild.roles.cache.find(r => r.name === 'Cesár').id;
+		const role = interaction.guild.roles.cache.find(r => r.name === botconfig.rpgadm).id;
 		if(interaction.member._roles.includes(role)){
 			if(interaction.options.getString('nickname') != null){
 				try{

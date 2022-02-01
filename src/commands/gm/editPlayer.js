@@ -26,6 +26,7 @@ let localplayer = {
 	"id":[],
 	"username":[]
 };
+const botconfig = require('../../../JSON/botconfig.json');
 //---------------------------
 //Buttons
 const selectEmbeds = require('../../modulesExports/buttons/selectEmbeds.js');
@@ -49,12 +50,8 @@ module.exports = class extends Command {
 	}
 
 	run = (interaction) =>{
-		const role = {
-			'id': '852373845351989289',
-			'name': ''
-		}
-		role.name = interaction.guild.roles.cache.find(r => r.id === role.id).name;
-		if(interaction.member._roles.includes(role.id)){
+		role = interaction.guild.roles.cache.find(r => r.id === botconfig.rpgadm).id;
+		if(interaction.member._roles.includes(role)){
 			if(interaction.options.getString('nickname')){
 				try{
 					player = require(`../../../JSON/fichas/${interaction.options.getString('nickname').toLowerCase()}.json`);

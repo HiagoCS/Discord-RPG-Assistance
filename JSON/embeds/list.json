@@ -8,5 +8,10 @@
 		"title":"Lista de Status",
 		"color":[0, 0, 255],
 		"fields":[]
+	},
+	"sa":{
+		"title":"Lista de Atributos",
+		"color":[0, 255, 0],
+		"fields":[]
 	}
 }

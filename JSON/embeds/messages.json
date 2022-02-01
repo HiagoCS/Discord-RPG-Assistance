@@ -33,5 +33,13 @@
 			"url":""
 		},
 		"fields":[]
+	},
+	"showAttr":{
+		"title":"『  Atributos  』",
+		"color":[0, 255, 0],
+		"thumbnail":{
+			"url": ""
+		},
+		"fields": []
 	}
 }

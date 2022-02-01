@@ -16,6 +16,8 @@ const showPagination = require('../../modulesExports/functions/pagination.js');
 const embedStatus = require('../../modulesExports/functions/embedStatus.js');
 const embedAttr = require('../../modulesExports/functions/embedAttr.js');
 const embedSkill = require('../../modulesExports/functions/embedSkill.js');
+
+const botconfig = require('../../../JSON/botconfig.json');
 module.exports = class extends Command{
 	constructor(client){
 		super(client, {
@@ -32,7 +34,7 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		const role = interaction.guild.roles.cache.find(r => r.name === 'Cesár').id;
+		const role = interaction.guild.roles.cache.find(r => r.name === botconfig.rpgadm).id;
 		if(interaction.member._roles.includes(role)){
 			if(interaction.options.getString('nickname')){
 				try{

@@ -75,7 +75,7 @@ module.exports = class extends Command{
 
 	run = (interaction, client) =>{
 		 
-		const role = interaction.guild.roles.cache.find(r => r.name === 'Cesár').id;
+		const role = interaction.guild.roles.cache.find(r => r.name === botconfig.rpgadm).id;
 		if(!interaction.member._roles.includes(role)){
 			interaction.channel.send({embeds: [messageEmbeds.noRole]});
 			return;

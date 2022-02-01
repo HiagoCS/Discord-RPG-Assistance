@@ -18,6 +18,6 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		interaction.channel.send({embeds:embedSkill(interaction, roberto)});
+		
 	}
 }

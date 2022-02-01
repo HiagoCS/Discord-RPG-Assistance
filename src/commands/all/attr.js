@@ -6,7 +6,7 @@ const fs = require('fs');
 const Command = require('../../structures/Command');
 
 //Functions
-const embedStatus = require('../../modulesExports/functions/embedStatus.js');
+const embedAttr = require('../../modulesExports/functions/embedAttr.js');
 const registerPlayer = require('../../modulesExports/functions/registerPlayer.js');
 //===================================================================================
 
@@ -15,31 +15,31 @@ var messageEmbeds = require('../../../JSON/embeds/messages.json');
 const listsEmbeds = require('../../../JSON/embeds/list.json');
 //===========================================================================
 const botconfig = require('../../../JSON/botconfig.json');
+
 module.exports = class extends Command{
 	constructor(client){
 		super(client, {
-			name: 'status',
-			description: 'Modifica ou exibe os status de um personagem.',
-			options:[
+			name: 'attr',
+			description: "Modifica ou exibe os atributos de um personagem.", 
+			options: [
 				{
 					name: 'personagem',
 					type: 'STRING',
-					description:'Nome do personagem que será criado'
+					description:'Nome do personagem.'
 				},
 				{
-					name: 'status',
+					name: 'atributo',
 					type: 'STRING',
-					description: 'Nome do status a alterar.' 
+					description: 'Nome do atributo.' 
 				},
 				{
 					name: 'valor',
 					type: 'STRING',
-					description:'Valor a ser aplicado no status'
+					description: 'Novo valor do atributo.' 
 				}
 			]
 		});
 	}
-
 	run = (interaction) =>{
 		const role = interaction.guild.roles.cache.find(r => r.name === botconfig.rpgadm).id;
 		//APENAS ADM
@@ -69,7 +69,7 @@ module.exports = class extends Command{
 								}
 								const player = require(`../../../JSON/fichas/${collect}.json`);
 								interaction.channel.messages.cache.find(b => b.author.id === interaction.user.id).delete();
-								checkingStatus(interaction, player);
+								checkingAtributtes(interaction, player);
 							}).catch((err) =>{
 								console.log(err);
 								messageEmbeds.error.description = "Este personagem não está na lista!";
@@ -87,7 +87,7 @@ module.exports = class extends Command{
 				var player = null;
 				try{
 					player = require(`../../../JSON/fichas/${interaction.options.getString("personagem").toLowerCase()}.json`);
-					checkingStatus(interaction, player);
+					checkingAtributtes(interaction, player);
 				}
 				catch{
 					messageEmbeds.error.description = `Este personagem não existe!`;
@@ -111,7 +111,7 @@ module.exports = class extends Command{
 					}
 				}
 				if(player){
-					checkingStatus(interaction, player);
+					checkingAtributtes(interaction, player);
 				}
 				else{
 					messageEmbeds.alert.description = `Sem personagem para exibir!`
@@ -125,6 +125,15 @@ module.exports = class extends Command{
 				var player = null;
 				try{
 					player = require(`../../../JSON/fichas/${interaction.options.getString("personagem").toLowerCase()}.json`);
+					if(player.id == interaction.user.id){
+						checkingAtributtes(interaction, player);
+					}
+					else{
+						interaction.channel.send({embeds: [messageEmbeds.noRole]})
+							.then(() =>{
+								setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+							});
+					}
 				}
 				catch{
 					messageEmbeds.error.description = `Este personagem não existe!`;
@@ -133,112 +142,77 @@ module.exports = class extends Command{
 							setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
 						});
 				}
-				if(player.id == interaction.user.id){
-					checkingStatus(interaction, player);
-				}
-				else{
-					interaction.channel.send({embeds: [messageEmbeds.noRole]})
-						.then(() =>{
-							setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
-						});
-				}
 			}
 		}
 	}
 }
-function calculateStatus(interaction, player, index, damage){
-	console.log("=== STATUS ANTIGO ===");
-	console.log(player.status[index]);
-	var value = parseInt(player.status[index].value);
-	var maxValue = parseInt(player.status[index].maxValue);
-	var damage = parseInt(damage);
-	const result = value + damage;
-	console.log(result);
-	if(result <= 0){
-		player.status[index].value = '0';
-	}
-	else if(result >= maxValue){
-		player.status[index].value = player.status[index].maxValue;
-	}
-	else{
-		player.status[index].value = result.toString();
-	}
-
-	var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
-	var numMix = Math.floor(Math.random() * colorMix.length);
-	messageEmbeds.showStatus.author.name = `『📝 ${player.name.substr(0,1).toUpperCase()+player.name.substr(1, player.name.length)} 📝』`;
-	messageEmbeds.showStatus.image.url = player.image;
-	messageEmbeds.showStatus.fields = {
-		name: `__**${player.status[index].name.substr(0, 1).toUpperCase()+player.status[index].name.substr(1, player.status[index].name.length)}**__`,
-		value:colorMix[numMix]+player.status[index].value+'/'+player.status[index].maxValue+'\n```'
-	}
-	const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
-	pChannel.send({embeds: [messageEmbeds.showStatus]});
-	console.log("=== STATUS NOVO ===");
-	console.log(player.status[index]);
-	registerPlayer(interaction, player);
-	return;
-}
-function checkingStatus(interaction, player){
-	if(interaction.options.getString("status") && interaction.options.getString("valor")){
+function checkingAtributtes(interaction, player){
+	if(interaction.options.getString("atributo") && interaction.options.getString("valor")){
 		var index = null;
-		for(let i in player.status){
-			if(player.status[i].name == interaction.options.getString("status").toLowerCase()+" ")
+		for(let i in player.attr){
+			if(player.attr[i].name == interaction.options.getString("atributo").toLowerCase()+" ")
 				index = i;
 		}
 		if(index){
-			calculateStatus(interaction, player, index, interaction.options.getString("valor"));
-		}
-		else{
-			messageEmbeds.alert.description = `Não existe Status com esse nome!`;
-			const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
-			pChannel.send({embeds: [messageEmbeds.alert]})
-				.then(() =>{
-					setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
-				});
-		}
-	}
-	if(!interaction.options.getString("status") && !interaction.options.getString("valor")){
-		const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
-		pChannel.send({embeds: embedStatus(interaction, player)});
-	}
-	if(interaction.options.getString("status") && !interaction.options.getString("valor")){
-		var index = null;
-		for(let i in player.status){
-			if(player.status[i].name == interaction.options.getString("status").toLowerCase()+" ")
-				index = i;
-		}
-		if(index){
+			console.log("=== ATTR ANTIGO ===");
+			console.log(player.attr[index]);
+			player.attr[index].value = interaction.options.getString("valor");
+			player.attr[index].maxValue = interaction.options.getString("valor");
+			console.log("=== ATTR NOVO ===");
+			console.log(player.attr[index]);
 			var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
 			var numMix = Math.floor(Math.random() * colorMix.length);
-
-			messageEmbeds.showStatus.author.name = `『📝 ${player.name.substr(0,1).toUpperCase()+player.name.substr(1, player.name.length)} 📝』`;
-			messageEmbeds.showStatus.image.url = player.image;
-			messageEmbeds.showStatus.fields = {
-				name: `__**${player.status[index].name.substr(0, 1).toUpperCase()+player.status[index].name.substr(1, player.status[index].name.length)}**__`,
-				value: colorMix[numMix]+player.status[index].value+'/'+player.status[index].maxValue+'\n```'
+			messageEmbeds.showAttr.thumbnail.url = player.image;
+			messageEmbeds.showAttr.fields = {
+				name: `__**${player.attr[index].name.substr(0, 1).toUpperCase()+player.attr[index].name.substr(1, player.attr[index].name.length)}**__`,
+				value: colorMix[numMix]+player.attr[index].maxValue+'\n```',
 			}
 			const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
-			pChannel.send({embeds: [messageEmbeds.showStatus]});
+			pChannel.send({embeds: [messageEmbeds.showAttr]});
+			registerPlayer(interaction, player);
+			return;
 		}
 		else{
-			messageEmbeds.alert.description = `Não existe Status com esse nome!`;
+			messageEmbeds.alert.description = `Não existe atributo com esse nome!`;
 			const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
 			pChannel.send({embeds: [messageEmbeds.alert]})
 				.then(() =>{
 					setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
 				});
-		}					
+		}
 	}
-	if(!interaction.options.getString("status") && interaction.options.getString("valor")){
-		for(let i in player.status){
-			listsEmbeds.ss.fields[i] = {
-				name: `${parseInt(i)+1}: __**${player.status[i].name.substr(0, 1).toUpperCase()+player.status[i].name.substr(1, player.status[i].name.length)}**__`,
-				value: `${player.status[i].value}/**${player.status[i].maxValue}**`
+	if(!interaction.options.getString("atributo") && !interaction.options.getString("valor")){
+		const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
+		pChannel.send({embeds: embedAttr(interaction, player)});
+	}
+	if(interaction.options.getString("atributo") && !interaction.options.getString("valor")){
+		var index = null;
+		for(let i in player.attr){
+			if(player.attr[i].name == interaction.options.getString("atributo").toLowerCase()+" ")
+				index = i;
+		}
+		if(index){
+			const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
+			pChannel.send({embeds: [testAtributte(interaction, player.attr[index])]});
+		}
+		else{
+			messageEmbeds.alert.description = `Não existe atributo com esse nome!`;
+			const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
+			pChannel.send({embeds: [messageEmbeds.alert]})
+				.then(() =>{
+					setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+				});
+		}
+	}
+	if(!interaction.options.getString("atributo") && interaction.options.getString("valor")){
+		for(let i in player.attr){
+			listsEmbeds.sa.fields[i] = {
+				name: `${parseInt(i)+1}: __**${player.attr[i].name.substr(0, 1).toUpperCase()+player.attr[i].name.substr(1, player.attr[i].name.length)}**__`,
+				value: player.attr[i].maxValue
 			}
 		}
 		const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
-		pChannel.send({embeds: [listsEmbeds.ss], content: `Digite o número do status:`})
+		pChannel.send({embeds: [listsEmbeds.sa], content: `Digite o número do atributo:`})
 			.then((msg) =>{
 				const filter = b => b.author.id === interaction.user.id;
 				pChannel.awaitMessages({filter, max:1})
@@ -251,12 +225,70 @@ function checkingStatus(interaction, player){
 								});
 						}
 						var index = parseInt(collect.first().content - 1);
-						calculateStatus(interaction, player, index, interaction.options.getString("valor"));
+						console.log("=== ATTR ANTIGO ===");
+						console.log(player.attr[index]);
+						player.attr[index].value = interaction.options.getString("valor");
+						player.attr[index].maxValue = interaction.options.getString("valor");
+						console.log("=== ATTR NOVO ===");
+						console.log(player.attr[index]);
+						var colorMix = ['```diff\n- ', '```fix\n', '```diff\n+ '];
+						var numMix = Math.floor(Math.random() * colorMix.length);
+						messageEmbeds.showAttr.thumbnail.url = player.image;
+						messageEmbeds.showAttr.fields = {
+							name: `__**${player.attr[index].name.substr(0, 1).toUpperCase()+player.attr[index].name.substr(1, player.attr[index].name.length)}**__`,
+							value: colorMix[numMix]+player.attr[index].maxValue+'\n```',
+						}
+						const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
+						pChannel.send({embeds: [messageEmbeds.showAttr]});
+						registerPlayer(interaction, player);
+						return;
 					}).catch((err) =>{
 						console.log(err);
 					});
 			}).catch((err) =>{
 				console.log(err);
 			});
+	}
+
+}
+function testAtributte(interaction, attr){
+	const level = parseInt(attr.maxValue);
+	const dice = Math.floor(Math.random() * 20 + 1);
+	var test =[
+		[20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1],
+		[null,20,20,19,19,18,18,17,17,16,16,15,15,14,14,13,13,12,12,11],
+		[null,null,null,null,20,20,20,20,20,19,19,19,19,19,18,18,18,18,18,17]
+	];
+	if(dice >= test[0][level-1] && dice < test[1][level-1]){
+		const successType = {
+			title: "💚 Normal 💚",
+			color:[0, 255, 0],
+			description: `Dado caiu ${dice}, ${attr.name} de valor ${level}`
+		}
+		return successType;
+	}
+	else if(dice >= test[1][level-1] && dice < test[2][level-1]){
+		const successType = {
+			title: "💎 Bom 💎",
+			color:[0, 0, 255],
+			description: `Dado caiu ${dice}, ${attr.name} de valor ${level}`
+		}
+		return successType;
+	}
+	else if(dice >= test[2][level-1]){
+		const successType = {
+			title: "🔥 EXTREMO 🔥",
+			color:[255, 0, 0],
+			description: `Dado caiu ${dice}, ${attr.name} de valor ${level}`
+		}
+		return successType;
+	}
+	else{
+		const successType = {
+			title: "🚫 Falhou 🚫",
+			color:[255, 255, 0],
+			description: `Dado caiu ${dice}, ${attr.name} de valor ${level}`
+		}
+		return successType;
 	}
 }
