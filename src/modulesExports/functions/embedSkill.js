@@ -4,7 +4,7 @@ module.exports = (interaction, player) =>{
 		for(let key in player.skills){
 			if(!all_embeds[Math.floor(i/25)]){
 				all_embeds.push({
-					"title":"『  Pericias  』",
+					"title":"『  Perícias  』",
 					"color":[255, 0, 0],
 					"thumbnail":{
 						"url": player.image

@@ -41,5 +41,13 @@
 			"url": ""
 		},
 		"fields": []
+	},
+	"showSkill":{
+		"title":"『  Perícias  』",
+		"color":[255, 0, 0],
+		"thumbnail":{
+			"url": ""
+		},
+		"fields": []
 	}
 }
