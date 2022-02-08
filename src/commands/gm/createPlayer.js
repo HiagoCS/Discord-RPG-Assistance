@@ -33,8 +33,15 @@ const player = {
 			"image":"",
 			"status":[],
 			"attr":[],
-			"skills":[]
+			"skills":[],
+			"inventory":{
+				"gun":[],
+				"melle":[],
+				"coin":"",
+				"bag":[]
+			}
 };
+
 var addId = 0;
 const optionBase = ['status', 'attr', 'skills', 'final'];
 const format = [
@@ -43,7 +50,6 @@ const format = [
 		{'name': 'Pericias', 'color': [255, 0, 0]}
 ]
 const botconfig = require('../../../JSON/botconfig.json');
-const embedsArray = [];
 
 module.exports = class extends Command{
 	constructor(client){

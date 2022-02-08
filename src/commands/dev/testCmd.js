@@ -3,7 +3,6 @@ const {MessageActionRow, MessageButton} = require('discord.js');
 const fs = require('fs');
 const player_card = require('../../../JSON/embeds/player_card.json');
 const {pagination} = require('reconlx');
-const roberto = require('../../../JSON/fichas/roberto vasques.json');
 const embedSkill = require('../../modulesExports/functions/embedSkill.js');
 const embedAttr = require('../../modulesExports/functions/embedAttr.js');
 const embedStatus = require('../../modulesExports/functions/embedStatus.js');
