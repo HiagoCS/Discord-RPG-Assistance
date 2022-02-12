@@ -5,7 +5,7 @@ module.exports = (interaction, player) =>{
 		if(!all_embeds[Math.floor(i/25)]){
 			all_embeds.push({
 				"author":{
-						"name":`『📝 ${player.name.substr(0,1).toUpperCase()+player.name.substr(1, player.name.length)} 📝』 || 💰${player.inventory.coin}`,
+						"name":`『📝 ${player.name.substr(0,1).toUpperCase()+player.name.substr(1, player.name.length)} 📝』 || 💰 R$${player.inventory.coin} 💰`,
 				},
 				"color":[0, 0, 255],
 				"image":{

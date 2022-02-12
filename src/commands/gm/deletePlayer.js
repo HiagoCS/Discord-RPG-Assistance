@@ -102,49 +102,53 @@ module.exports = class extends Command{
 		}
 		else{
 			let files = fs.readdirSync("./JSON/fichas"); files.shift();
+			var player = null;
 			for(let i in files){
-				const player = require(`../../../JSON/fichas/${files[i]}`);
-				if(player.id == interaction.user.id){
-					if(interaction.options.getString('nickname') != null){
-						if(interaction.options.getString('nickname').toLowerCase != player.name.toLowerCase()){
-							messageEmbeds.msg.title = `🚫 PERMISSÃO NEGADA 🚫`
-							messageEmbeds.msg.description = `Você não tem permissão para deletar ${interaction.options.getString('nickname').substr(0, 1).toUpperCase()+interaction.options.getString('nickname').substr(1, interaction.options.getString('nickname').length)}`
-							messageEmbeds.msg.color = [255, 0 , 0];
-							interaction.channel.send({embeds:[messageEmbeds.msg]})
-								.then(() =>{
-									setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 8000);
-								});
-						}
-						else{
-							const pChannel = interaction.guild.channels.cache.find(r => r.id === player.privateChannel.id);
-							const deletedPlayer = player.name;
-							const deletedPlayerId = player.id;
-							messageEmbeds.msg.title = `✔️ Deletado ✔️`
-							messageEmbeds.msg.description = `${deletedPlayer.substr(0, 1).toUpperCase()+deletedPlayer.substr(1, deletedPlayer.length)} excluido com sucesso!`
-							messageEmbeds.msg.color = [0, 255, 0];
-							interaction.user.send({embeds:[messageEmbeds.msg]});
-							pChannel.delete();
-							fs.unlinkSync(files[i]);
-						}
+				let filesList = require(`../../../JSON/fichas/${files[i]}`);
+				if(filesList.id == interaction.user.id){
+					player = filesList;
+				}
+			}
+			if(player){
+				if(interaction.options.getString('nickname') != null){
+					if(interaction.options.getString('nickname').toLowerCase != player.name.toLowerCase()){
+						messageEmbeds.msg.title = `🚫 PERMISSÃO NEGADA 🚫`
+						messageEmbeds.msg.description = `Você não tem permissão para deletar ${interaction.options.getString('nickname').substr(0, 1).toUpperCase()+interaction.options.getString('nickname').substr(1, interaction.options.getString('nickname').length)}`
+						messageEmbeds.msg.color = [255, 0 , 0];
+						interaction.channel.send({embeds:[messageEmbeds.msg]})
+							.then(() =>{
+								setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 8000);
+							});
 					}
 					else{
 						const pChannel = interaction.guild.channels.cache.find(r => r.id === player.privateChannel.id);
 						const deletedPlayer = player.name;
+						const deletedPlayerId = player.id;
 						messageEmbeds.msg.title = `✔️ Deletado ✔️`
 						messageEmbeds.msg.description = `${deletedPlayer.substr(0, 1).toUpperCase()+deletedPlayer.substr(1, deletedPlayer.length)} excluido com sucesso!`
 						messageEmbeds.msg.color = [0, 255, 0];
 						interaction.user.send({embeds:[messageEmbeds.msg]})
 						pChannel.delete();
-						fs.unlinkSync(`./JSON/fichas/${files[i]}`);
+						fs.unlinkSync(`./JSON/fichas/${player.name}.json`);
 					}
 				}
 				else{
-					messageEmbeds.alert.description = `Sem personagem para deletar`;
-					return interaction.channel.send({embeds:[messageEmbeds.alert]})
-						.then(() =>{
-							setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
-						});
+					const pChannel = interaction.guild.channels.cache.find(r => r.id === player.privateChannel.id);
+					const deletedPlayer = player.name;
+					messageEmbeds.msg.title = `✔️ Deletado ✔️`
+					messageEmbeds.msg.description = `${deletedPlayer.substr(0, 1).toUpperCase()+deletedPlayer.substr(1, deletedPlayer.length)} excluido com sucesso!`
+					messageEmbeds.msg.color = [0, 255, 0];
+					interaction.user.send({embeds:[messageEmbeds.msg]})
+					pChannel.delete();
+					fs.unlinkSync(`./JSON/fichas/${player.name}.json`);
 				}
+			}
+			else{
+				messageEmbeds.alert.description = `Sem personagem para exibir`;
+				interaction.channel.send({embeds: [messageEmbeds.alert]})
+					.then(() =>{
+						setTimeout(() => interaction.channel.messages.cache.find(b => b.author.bot === true).delete(), 5000);
+					});
 			}
 		}
 	}

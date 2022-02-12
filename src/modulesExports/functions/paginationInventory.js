@@ -1,12 +1,5 @@
 const {pagination} = require('reconlx');
-module.exports = (interaction, gun, melle, bag, player) =>{
-	const pages = [];
-	for(let i in status)
-		pages.push(status[i]);
-	for(let i in attrs)
-		pages.push(attrs[i]);
-	for(let i in skills)
-		pages.push(skills[i]);
+module.exports = (interaction, player, pages) =>{
 	pagination({
 		embeds: pages,
 		message: interaction,
