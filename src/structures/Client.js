@@ -1,7 +1,7 @@
 const {Client} = require('discord.js');
 const {readdirSync} = require('fs');
 const {join} = require('path');
-
+const botconfig = require('../../JSON/botconfig.json');
 module.exports = class extends Client {
 	constructor(options){
 		super(options);
@@ -12,7 +12,9 @@ module.exports = class extends Client {
 	}
 
 	registryCommands(){
-		this.guilds.cache.get('851194958055735327').commands.set(this.commands)
+		for(let i in botconfig.serversIds){
+			this.guilds.cache.get(botconfig.serversIds[i]).commands.set(this.commands);
+		}
 	}
 
 	loadCommands(path = 'src/commands'){
