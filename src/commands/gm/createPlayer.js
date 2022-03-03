@@ -151,7 +151,7 @@ function addMethod(interaction, option){
 			if(option == optionBase[0]){
 				player.status[addId] = {
 					'id':addId,
-					'name':collect[0].toLowerCase(), 
+					'name':collect[0].toLowerCase().substr(0, collect[0].length-1), 
 					'value':globalVal,
 					'maxValue':globalVal
 				}
@@ -163,7 +163,7 @@ function addMethod(interaction, option){
 			else if(option == optionBase[1]){
 				player.attr[addId] = {
 					'id':addId,
-					'name':collect[0].toLowerCase(), 
+					'name':collect[0].toLowerCase().substr(0, collect[0].length-1), 
 					'value':globalVal,
 					'maxValue':globalVal
 				}
@@ -175,7 +175,7 @@ function addMethod(interaction, option){
 			else if(option == optionBase[2]){
 				player.skills[addId] = {
 					'id':addId,
-					'name':collect[0].toLowerCase(), 
+					'name':collect[0].toLowerCase().substr(0, collect[0].length-1), 
 					'value':globalVal,
 					'maxValue':globalVal
 				}
