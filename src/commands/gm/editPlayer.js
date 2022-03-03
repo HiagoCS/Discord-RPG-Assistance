@@ -50,7 +50,7 @@ module.exports = class extends Command {
 	}
 
 	run = (interaction) =>{
-		role = interaction.guild.roles.cache.find(r => r.id === botconfig.rpgadm).id;
+		const role = interaction.guild.roles.cache.find(r => r.name === botconfig.rpgadm).id;
 		if(interaction.member._roles.includes(role)){
 			if(interaction.options.getString('nickname')){
 				try{

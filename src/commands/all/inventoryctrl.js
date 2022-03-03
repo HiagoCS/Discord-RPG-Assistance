@@ -187,7 +187,7 @@ function home(interaction, player, cmd){
 			showInventory(interaction, player, player.inventory[type], type);
 			break;
 		case 'rm':
-			rmInventory(interaction, player);
+			rmInventory(interaction, player, player.inventory[type], type);
 			break;
 		case 'edit':
 			editInventory(interaction, player, player.inventory[type], type);
@@ -452,6 +452,7 @@ function editInventory(interaction, player, object, type){
 }
 
 function rmInventory(interaction, player){
+	const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
 	
 }
 

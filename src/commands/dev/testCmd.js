@@ -17,6 +17,6 @@ module.exports = class extends Command{
 	}
 
 	run = (interaction) =>{
-		
+		console.log(interaction.channel.messages.cache);
 	}
 }
