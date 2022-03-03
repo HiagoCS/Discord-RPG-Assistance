@@ -27,7 +27,7 @@ module.exports = class extends Command{
 					description:'Nome do personagem que será criado'
 				},
 				{
-					name: 'status',
+					name: 'nome',
 					type: 'STRING',
 					description: 'Nome do status a alterar.' 
 				},
@@ -180,10 +180,10 @@ function calculateStatus(interaction, player, index, damage){
 	return;
 }
 function checkingStatus(interaction, player){
-	if(interaction.options.getString("status") && interaction.options.getString("valor")){
+	if(interaction.options.getString("nome") && interaction.options.getString("valor")){
 		var index = null;
 		for(let i in player.status){
-			if(player.status[i].name == interaction.options.getString("status").toLowerCase()+" ")
+			if(player.status[i].name == interaction.options.getString("nome").toLowerCase()+" ")
 				index = i;
 		}
 		if(index){
@@ -198,14 +198,14 @@ function checkingStatus(interaction, player){
 				});
 		}
 	}
-	if(!interaction.options.getString("status") && !interaction.options.getString("valor")){
+	if(!interaction.options.getString("nome") && !interaction.options.getString("valor")){
 		const pChannel = interaction.guild.channels.cache.find(c => c.id === player.privateChannel.id);
 		pChannel.send({embeds: embedStatus(interaction, player)});
 	}
-	if(interaction.options.getString("status") && !interaction.options.getString("valor")){
+	if(interaction.options.getString("nome") && !interaction.options.getString("valor")){
 		var index = null;
 		for(let i in player.status){
-			if(player.status[i].name == interaction.options.getString("status").toLowerCase()+" ")
+			if(player.status[i].name == interaction.options.getString("nome").toLowerCase()+" ")
 				index = i;
 		}
 		if(index){
@@ -230,7 +230,7 @@ function checkingStatus(interaction, player){
 				});
 		}					
 	}
-	if(!interaction.options.getString("status") && interaction.options.getString("valor")){
+	if(!interaction.options.getString("nome") && interaction.options.getString("valor")){
 		for(let i in player.status){
 			listsEmbeds.ss.fields[i] = {
 				name: `${parseInt(i)+1}: __**${player.status[i].name.substr(0, 1).toUpperCase()+player.status[i].name.substr(1, player.status[i].name.length)}**__`,
