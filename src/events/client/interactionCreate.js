@@ -14,7 +14,7 @@ module.exports = class extends Event{
 				interaction.deferReply({
 					ephemeral: true
 				}).then((interaction) =>{
-					interaction = new Promise(resolve => setTimeout(resolve, 500))
+					interaction = new Promise(resolve => setTimeout(resolve, 60000))
 				})
 
 			} 
